@@ -1,27 +1,34 @@
+set strWorkingDirectory=%WORKSPACE%\%BUILD_NUMBER%\
+cd %strWorkingDirectory%
+REM Load filename as filename doesn't contain spaces
+FOR /F %%i IN (assetName.dat) DO set assetZipName=%%i
+echo assetZipName: %assetZipName%
+
 REM Batch File created by Faizan-ur-Rehman Last Updated 29-06-2017
-::This loads assets from input path and load them in unity in unique directory and create asset bundle from them and make zips of them as well
+REM This loads assets from input path and load them in unity in unique directory and create asset bundle from them and make zips of them as well
 
-set unityProjectPath=C:\Users\Faizan\Documents\AssetBundleExporter
+set unityProjectPath=C:\Users\Administrator\Documents\AssetBundleExporter
 
-set inputPath=C:\Users\Faizan\Desktop\AssetModelZip
+set inputPath=C:\Users\Administrator\Desktop\AssetModelZip
 
-set inputAssetModelName=DoubleHungWindow_Unity
+set inputAssetModelName=%assetZipName%
 
-set errerCode=0
+set errorCode=0
 
 IF NOT EXIST "%unityProjectPath%\Assets\" GOTO DIRECTORYNOTEXIST
 
-::remove directory resource with all its sub directories and without confirmation
+REM remove directory resource with all its sub directories and without confirmation
 
-rename "%unityProjectPath%\Assets\Resources" resources_old
+REM we are not using resource folder
+REM rename "%unityProjectPath%\Assets\Resources" resources_old
 
 rmdir "%unityProjectPath%\Assets\parrentResources" /s /q
 
-::create Resources directory in the new unique directory using build number environment variable
+REM create Resources directory in the new unique directory using build number environment variable
 
 mkdir "%unityProjectPath%\Assets\parrentResources\%BUILD_NUMBER%\Resources"
 
-::unzip all input zip files to new created resource folder
+REM unzip all input zip files to new created resource folder
 
 IF NOT EXIST "C:\Program Files\7-Zip" GOTO 7ZIPNOTINSTALLED
 
@@ -40,7 +47,7 @@ IF NOT EXIST "C:\Program Files\Unity\Editor\" GOTO UNITYNOTFOUND
 
 cd "C:\Program Files\Unity\Editor"
 
-::Now run unity in batch mode, unity project automatically detects new unique directory and create materials from .mtl files assign bundle names and export them(see the unity editor script)
+REM Now run unity in batch mode, unity project automatically detects new unique directory and create materials from .mtl files assign bundle names and export them(see the unity editor script)
 
 start /wait Unity.exe -quit -projectPath %unityProjectPath% -executeMethod RBAssetBundleExporter.BuildAllAssetBundles %inputAssetModelName%
 
@@ -61,15 +68,20 @@ cd %unityProjectPath%\newAssetBundles
 
 for %%j in (%inputAssetModelName%.*) do copy %%j zips\%inputAssetModelName%
 
-cd "%unityProjectPath%\newAssetBundles\zips"
+cd "C:\Program Files\7-Zip"
 
-for /d %%i in (*.*) do 7z a -tzip %%i %%i
+for /d %%i in (%unityProjectPath%\newAssetBundles\zips\*.*) do 7z a -tzip %%i %%i
+
+REM we are not using resource fodler
+REM rename "%unityProjectPath%\Assets\resources_old" Resources
+
+xcopy %unityProjectPath%\newAssetBundles\zips\%inputAssetModelName%.zip "%WORKSPACE%\"
 
 GOTO END
 
 :DIRECTORYNOTEXIST
 
-echo "unity project directory does not exists. Please create unity project named test containing editer script myscript with function BuildAllAssetBundles which exports asset bundles folder wise from resources"
+echo "unity project directory does not exists. Please create unity project named AssetBundleExporter containing editer script RBAssetBundleExporter with function BuildAllAssetBundles which exports asset bundle from resources"
 set errorCode=6
 GOTO END
 
@@ -81,7 +93,7 @@ GOTO END
 
 :INPUTLOCATIONNOTFOUND
 
-echo "Input location not found. place input zips in C:\users\faizan\desktop\input\"
+echo "Input location not found. place input zips in C:\users\Administrator\desktop\input\"
 set errorCode=8
 GOTO END
 
@@ -142,4 +154,5 @@ GOTO END
 
 :END
 if NOT %errorCode%==0 (exit /b %errorCode%)
+
 
