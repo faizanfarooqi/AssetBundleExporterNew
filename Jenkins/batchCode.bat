@@ -141,4 +141,5 @@ GOTO END
 
 
 :END
+if NOT %errorCode%==0 (exit /b %errorCode%)
 
